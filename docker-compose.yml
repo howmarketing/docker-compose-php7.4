@@ -7,9 +7,9 @@ services:
             - /Volumes/HD/Users/macbook/projetos_docker/howmarketing_phpsetup:/var/www/html
         ports:
             - 8880:80 8881:81 33060:3306 3001:3000 8882:8181 8883:8080
-    networks:
-      - mysql-compose-network
+        networks:
+            - mysql-compose-network
 
 networks: 
-  mysql-compose-network:
-    driver: bridge
+    mysql-compose-network:
+        driver: bridge

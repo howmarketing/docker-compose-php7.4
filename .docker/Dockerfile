@@ -3,8 +3,8 @@ FROM debian:bullseye-slim
 # add our user and group first to make sure their IDs get assigned consistently, regardless of whatever dependencies get added
 #RUN groupadd -r www-data && useradd -r --create-home -g www-data www-data
 
-ENV HTTPD_PREFIX /usr/local/apache2
-ENV PATH $HTTPD_PREFIX/bin:$PATH
+ENV HTTPD_PREFIX=/usr/local/apache2
+ENV PATH=${HTTPD_PREFIX}/bin:$PATH
 RUN mkdir -p "$HTTPD_PREFIX" \
 	&& chown www-data:www-data "$HTTPD_PREFIX"
 WORKDIR $HTTPD_PREFIX
@@ -18,8 +18,8 @@ RUN set -eux; \
 	; \
 	rm -rf /var/lib/apt/lists/*
 
-ENV HTTPD_VERSION 2.4.51
-ENV HTTPD_SHA256 20e01d81fecf077690a4439e3969a9b22a09a8d43c525356e863407741b838f4
+ENV HTTPD_VERSION="2.4.51"
+ENV HTTPD_SHA256="20e01d81fecf077690a4439e3969a9b22a09a8d43c525356e863407741b838f4"
 
 # https://httpd.apache.org/security/vulnerabilities_24.html
 ENV HTTPD_PATCHES=""
@@ -76,11 +76,11 @@ RUN set -eux; \
 		[ -n "$success" ]; \
 	}; \
 	\
-	ddist 'httpd.tar.bz2' "httpd/httpd-$HTTPD_VERSION.tar.bz2"; \
-	echo "$HTTPD_SHA256 *httpd.tar.bz2" | sha256sum -c -; \
+	ddist 'httpd.tar.bz2' "httpd/httpd-${HTTPD_VERSION}.tar.bz2"; \
+	echo "${HTTPD_SHA256} *httpd.tar.bz2" | sha256sum -c -; \
 	\
 # see https://httpd.apache.org/download.cgi#verify
-	ddist 'httpd.tar.bz2.asc' "httpd/httpd-$HTTPD_VERSION.tar.bz2.asc"; \
+	ddist 'httpd.tar.bz2.asc' "httpd/httpd-${HTTPD_VERSION}.tar.bz2.asc"; \
 	export GNUPGHOME="$(mktemp -d)"; \
 # $ docker run --rm buildpack-deps:bullseye-curl bash -c 'wget -qO- https://downloads.apache.org/httpd/KEYS | gpg --batch --import &> /dev/null && gpg --batch --list-keys --with-fingerprint --with-colons' | awk -F: '$1 == "pub" && $2 == "-" { pub = 1 } pub && $1 == "fpr" { fpr = $10 } $1 == "sub" { pub = 0 } pub && fpr && $1 == "uid" && $2 == "-" { print "#", $10; print "\t\t" fpr " \\"; pub = 0 }'
 	for key in \
@@ -168,7 +168,7 @@ RUN set -eux; \
 		while [ "$#" -gt 0 ]; do \
 			local patchFile="$1"; shift; \
 			local patchSha256="$1"; shift; \
-			ddist "$patchFile" "httpd/patches/apply_to_$HTTPD_VERSION/$patchFile"; \
+			ddist "$patchFile" "httpd/patches/apply_to_${HTTPD_VERSION}/$patchFile"; \
 			echo "$patchSha256 *$patchFile" | sha256sum -c -; \
 			patch -p0 < "$patchFile"; \
 			rm -f "$patchFile"; \
@@ -182,7 +182,7 @@ RUN set -eux; \
 	LDFLAGS="$(dpkg-buildflags --get LDFLAGS)"; \
 	./configure \
 		--build="$gnuArch" \
-		--prefix="$HTTPD_PREFIX" \
+		--prefix="${HTTPD_PREFIX}" \
 		--enable-mods-shared=reallyall \
 		--enable-mpms-shared=all \
 # enable the same hardening flags as Debian
@@ -203,8 +203,8 @@ RUN set -eux; \
 		-e 's!^(\s*CustomLog)\s+\S+!\1 /proc/self/fd/1!g' \
 		-e 's!^(\s*ErrorLog)\s+\S+!\1 /proc/self/fd/2!g' \
 		-e 's!^(\s*TransferLog)\s+\S+!\1 /proc/self/fd/1!g' \
-		"$HTTPD_PREFIX/conf/httpd.conf" \
-		"$HTTPD_PREFIX/conf/extra/httpd-ssl.conf" \
+		"${HTTPD_PREFIX}/conf/httpd.conf" \
+		"${HTTPD_PREFIX}/conf/extra/httpd-ssl.conf" \
 	; \
 	\
 # reset apt-mark's "manual" list so that "purge --auto-remove" will remove all build dependencies

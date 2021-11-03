@@ -4,10 +4,15 @@ FROM debian:bullseye-slim
 #RUN groupadd -r www-data && useradd -r --create-home -g www-data www-data
 
 ENV HTTPD_PREFIX=/usr/local/apache2
-ENV PATH=${HTTPD_PREFIX}/bin:$PATH
-RUN mkdir -p "$HTTPD_PREFIX" \
-	&& chown www-data:www-data "$HTTPD_PREFIX"
-WORKDIR $HTTPD_PREFIX
+ENV PATH="/usr/local/apache2/bin:${PATH}"
+RUN echo $PATH
+RUN echo ${PATH}
+RUN echo $HTTPD_PREFIX
+RUN echo "${HTTPD_PREFIX}"
+
+RUN mkdir -p "${HTTPD_PREFIX}" \
+	&& chown www-data:www-data "${HTTPD_PREFIX}"
+WORKDIR "${HTTPD_PREFIX}
 
 # install httpd runtime dependencies
 # https://httpd.apache.org/docs/2.4/install.html#requirements
@@ -229,4 +234,4 @@ STOPSIGNAL SIGWINCH
 COPY httpd-foreground /usr/local/bin/
 
 EXPOSE 80 81 3306 3000 8181 8080
-CMD "httpd-foreground"
+CMD ["-D","httpd-foreground"]
